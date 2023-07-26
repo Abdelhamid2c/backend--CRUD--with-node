@@ -11,6 +11,7 @@ const port = process.env.port || 2001;
 app.use(express.json());
 
 app.use("/contacts", require("./Route/contactRoutes"));
+app.use("/auth", require("./Route/authRoutes"));
 
 app.use(errorHandler);
 
