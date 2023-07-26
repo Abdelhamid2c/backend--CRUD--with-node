@@ -4,16 +4,16 @@ const asynchandler = require("express-async-handler");
 
 //@des get all contacts
 //@route GET /contacts
-//@access public
+//@access private
 
 const getAllContacts = asynchandler(async (req, res) => {
-  const contacts = await Contact.find();
+  const contacts = await Contact.find({ user_id: req.user.id });
   res.status(200).json(contacts);
 });
 
 //@des get contact
 //@route GET /contacts
-//@access public
+//@access private
 
 const getContact = asynchandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
@@ -27,7 +27,7 @@ const getContact = asynchandler(async (req, res) => {
 
 //@des delete contact
 //@route delete /contacts/:id
-//@access public
+//@access private
 
 const deleteContact = asynchandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
@@ -36,13 +36,19 @@ const deleteContact = asynchandler(async (req, res) => {
     res.status(404);
     throw new Error("contact not found");
   }
+
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403)
+    throw new Error("User don't have permission to delete other user contact")
+  }
+
   await contact.deleteOne();
   res.status(200).json({ message: `delete contact for ${req.params.id}` });
 });
 
 //@des create contact
 //@route post /contacts/:id
-//@access public
+//@access private
 
 const createContact = asynchandler(async (req, res) => {
   const { name, email, phone } = req.body;
@@ -56,13 +62,14 @@ const createContact = asynchandler(async (req, res) => {
     name,
     email,
     phone,
+    user_id: req.user.id
   });
   res.status(201).json(contact);
 });
 
 //@des update contact
 //@route put /contacts/:id
-//@access public
+//@access private
 
 const updateContact = asynchandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
@@ -70,6 +77,11 @@ const updateContact = asynchandler(async (req, res) => {
   if (!contact) {
     res.status(404);
     throw new Error("contact not found");
+  }
+
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403)
+    throw new Error("User don't have permission to update other user contact")
   }
 
   const updatedContact = await Contact.findByIdAndUpdate(

@@ -4,12 +4,14 @@ const {
   loginContact,
   getInfocontact,
 } = require("../controllers/userControllers");
+const validateToken = require("../middleware/verifyToken");
+
 const auth = express.Router();
 
-auth.route("/register").post(registerContact);
+auth.post("/register", registerContact);
 
-auth.route("/login").post(loginContact);
+auth.post("/login", loginContact);
 
-auth.route("/current").get(getInfocontact);
+auth.get("/current", validateToken, getInfocontact);
 
 module.exports = auth;
